@@ -8,7 +8,7 @@ pFF=1/3			   #All validators have the same probability to propose
 pF=1/3
 pS=1/3
 #TEST THROUGHPUT MODELLING PROPOSE AND PREVOTE WITH k
-k=0.5		   #Test the troughput with k starting from 0.3 to 0.9 step 0.3
+k=1		   #Test the troughput with k starting from 0.3 to 0.9 step 0.3
 #T1 = 0.3,  T2 = 0.1,  T3 = 0.1,  T4 = 0.1,  g = 0.05
 valT1=0.3
 valT2=0.1
@@ -98,7 +98,8 @@ delta_6=1/(valT3)
 w3_6=0.999999999999
 
 x=np.zeros((55,55))
-st=[[""]*55]*55
+st=[["_" for _ in range(55)] for _ in range(55)]
+
 
 st[0][1]="nh"
 x[0][1]=n
@@ -315,3 +316,13 @@ def Markov_Steady_State_Prop(p):
 stt=Markov_Steady_State_Prop(np.transpose(x))
 print(stt)
 print(sum(stt))
+
+
+def trougput(actype,stt):
+    trog=0
+    for i,sti in enumerate(st):
+        for j in [k for k,xx in enumerate(sti) if xx==actype]:
+            trog+=stt[i]*x[i][j]
+    return trog
+
+print(trougput("p",stt))
