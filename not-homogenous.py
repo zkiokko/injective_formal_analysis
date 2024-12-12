@@ -3,126 +3,142 @@ import numpy as np
 import pandas as pd
 
 k=1	
-T1=0.3
-T2=0.1
-T3=0.1
-T4=0.1
 g = 0.05
 
-t1=np.zeros(3)
-for i in t1:
-    i=k*T1
+VP=[0,0,0]
+
+VP[0]=31.65/6/100
+VP[1]=(65.57-31.65)/(23-6)/100
+VP[2]=(100-65.57)/(60-23)/100
+
+
+
+T2_original=.1
+print("FF:",VP[0]," F:",VP[1]," S:",VP[2])
+
+def init(k,g,sigma):
+    T1=.3*sigma
+    T2=.1*sigma
+    T3=.1*sigma
+    T4=.1*sigma
+
+
+    t1=np.zeros(3)
+    for i in range(len(t1)):
+        t1[i]=.3*VP[1]/VP[i]*k
+    print(t1)
+    t2=k*T2_original
+
+    gammas= np.zeros((3,6))
+    for i,gi in enumerate(gammas): 
+        for j,gj in enumerate(gi): 
+            gammas[i][j]=max(1/t1[i],1/(T1+j*g))
+
+    betas=np.zeros(6)
+    for i,bi in enumerate(betas):
+        betas[i]=max(1/t2,1/(T2+i*g))
+
+    deltas=np.zeros(6)
+    for i,di in enumerate(deltas):
+        deltas[i]=1/(T3+i*g)
+        
+    w1s=np.zeros((3,6))
+    for i,wi in enumerate(w1s): 
+        for j,wj in enumerate(wi): 
+            w1s[i][j]=1-np.exp(-(T1/t1[i]))
     
-t2=k*T2
-
-gammas= np.zeros((3,6))
-for i,gi in enumerate(gammas): 
-    for j,gj in enumerate(gi): 
-        gj=max(1/t1[i],1/(T1+(j-1)*g))
-
-betas=np.zeros(6)
-for i,bi in enumerate(betas):
-    bi=max(1/t2,1/(T2+(i-1)*g))
-
-deltas=np.zeros(6)
-for i,di in enumerate(deltas):
-    di=1/(T3+(i-1)*g)
-
-
-
-def init(k):
-    n=1000000000000.0
+    w2s=np.zeros(6)
+    for i,bi in enumerate(w2s):
+        w2s[i]=1-np.exp(-(T2/t2))
+    
+    n=1000000.0
     pFF=1/3			   #All validators have the same probability to propose
     pF=1/3
     pS=1/3
     #TEST THROUGHPUT MODELLING PROPOSE AND PREVOTE WITH k	   
     # #Test the troughput with k starting from 0.3 to 0.9 step 0.3
     #T1 = 0.3,  T2 = 0.1,  T3 = 0.1,  T4 = 0.1,  g = 0.05
-    valT1=0.3
-    valT2=0.1
-    valT3=0.1
-    valT4=0.1
-    #g = 0.05
+
     #PROPOSE SECTION
     #Same rates to Propose
-    gamma1_FF=1/(k*valT1)        #max (1/k*t1, 1/T1) = 11.111
-    w1_FF=0.63
-    gamma1_F=1/(k*valT1)
-    w1_F=0.63
-    gamma1_S=1/(k*valT1)
-    w1_S=0.63
+    gamma1_FF=gammas[0][0]        #max (1/k*t1, 1/T1) = 11.111
+    w1_FF=w1s[0][0]
+    gamma1_F=gammas[1][0]
+    w1_F=w1s[1][0]
+    gamma1_S=gammas[2][0]
+    w1_S=w1s[2][0]
     #PREVOTE TO COMMIT SECTION
-    beta_1=1/(k*valT2)          #max (1/k*t1, 1/T1) = 33.333
-    w2_1=0.964
-    delta_1=1/(valT3)
-    w3_1=0.999999999                 
-    eta=1/(valT4)
+    beta_1=betas[0]          #max (1/k*t1, 1/T1) = 33.333
+    w2_1=w2s[0]
+    delta_1=deltas[0]
+    w3_1=0.999999999         
+    eta=1/(T4)
 
     #ROUND 2 RATES DEFINITION
-    gamma2_FF=1/(k*valT1)        
-    w2_FF=0.63
-    gamma2_F=1/(k*valT1)
-    w2_F=0.63
-    gamma2_S=1/(k*valT1)
-    w2_S=0.63
+    gamma2_FF=gammas[0][1]        
+    w2_FF=w1s[0][1]
+    gamma2_F=gammas[1][1]
+    w2_F=w1s[1][1]
+    gamma2_S=gammas[2][1]
+    w2_S=w1s[2][1]
     #PREVOTE TO COMMIT SECTION
-    beta_2=1/(k*valT2)          
-    w2_2=0.964
-    delta_2=1/(valT3)
+    beta_2=betas[1]          
+    w2_2=w2s[1]
+    delta_2=deltas[1]
     w3_2=0.999999999  
 
     #ROUND 3 RATES DEFINITION
 
-    gamma3_FF=1/(k*valT1)        
-    w3_FF=0.63
-    gamma3_F=1/(k*valT1)
-    w3_F=0.63
-    gamma3_S=1/(k*valT1)
-    w3_S=0.63
+    gamma3_FF=gammas[0][2]        
+    w3_FF=w1s[0][2]
+    gamma3_F=gammas[1][2]
+    w3_F=w1s[1][2]
+    gamma3_S=gammas[2][2]
+    w3_S=w1s[2][2]
     #PREVOTE TO COMMIT SECTION
-    beta_3=1/(k*valT2)          
-    w2_3=0.964
-    delta_3=1/(valT3)
+    beta_3=betas[2]          
+    w2_3=w2s[2]
+    delta_3=deltas[2]
     w3_3=0.999999999 
 
     #ROUND 4 RATES DEFINITION
 
-    gamma4_FF=1/(k*valT1)        
-    w4_FF=0.63
-    gamma4_F=1/(k*valT1)
-    w4_F=0.63
-    gamma4_S=1/(k*valT1)
-    w4_S=0.63
+    gamma4_FF=gammas[0][3]        
+    w4_FF=w1s[0][3]
+    gamma4_F=gammas[1][3]
+    w4_F=w1s[1][3]
+    gamma4_S=gammas[2][3]
+    w4_S=w1s[2][3]
     #PREVOTE TO COMMIT SECTION
-    beta_4=1/(k*valT2)          
-    w2_4=0.964
-    delta_4=1/(valT3)
+    beta_4=betas[3]          
+    w2_4=w2s[3]
+    delta_4=deltas[3]
     w3_4=0.999999999 
 
     #ROUND 5 RATES DEFINITION
-    gamma5_FF=1/(k*valT1)        
-    w5_FF=0.63
-    gamma5_F=1/(k*valT1)
-    w5_F=0.63
-    gamma5_S=1/(k*valT1)
-    w5_S=0.63
+    gamma5_FF=gammas[0][4]        
+    w5_FF=w1s[0][4]
+    gamma5_F=gammas[1][4]
+    w5_F=w1s[1][4]
+    gamma5_S=gammas[2][4]
+    w5_S=w1s[2][4]
     #PREVOTE TO COMMIT SECTION
-    beta_5=1/(k*valT2)          
-    w2_5=0.964
-    delta_5=1/(valT3)
+    beta_5=betas[4]          
+    w2_5=w2s[4]
+    delta_5=deltas[4]
     w3_5=0.999999999 
 
     #ROUND 6 RATES DEFINITION
-    gamma6_FF=1/(k*valT1)        
-    w6_FF=0.63
-    gamma6_F=1/(k*valT1)
-    w6_F=0.63
-    gamma6_S=1/(k*valT1)
-    w6_S=0.63
+    gamma6_FF=gammas[0][5]        
+    w6_FF=w1s[0][5]
+    gamma6_F=gammas[1][5]
+    w6_F=w1s[1][5]
+    gamma6_S=gammas[2][5]
+    w6_S=w1s[2][5]
     #PREVOTE TO COMMIT SECTION
-    beta_6=1/(k*valT2)          
-    w2_6=0.964
-    delta_6=1/(valT3)
+    beta_6=betas[5]          
+    w2_6=w2s[5]
+    delta_6=deltas[5]
     w3_6=0.999999999999
     
     x=np.zeros((55,55))
@@ -326,14 +342,16 @@ def init(k):
         x[i][i]=-sum(x[i])
     return x,st,state
 
-x,st,state=init(1)
+x,st,state=init(1,g,1)
 
 
-f=open("a.txt","w")
-f.write(pd.DataFrame(x,columns=state,index=state).to_csv())
 
+
+def to_single_rount(x):
+    nx=x[np.ix_([0,3],[0,3])]
 
 def Markov_Steady_State_Prop(p):
+    p=p.copy()
     for ii in range(p.shape[0]):
         p[0,ii] = 1
     
@@ -346,29 +364,99 @@ stt=Markov_Steady_State_Prop(np.transpose(x))
 print(stt)
 print(sum(stt))
 
+def trp(actypes,stt):
+    trog=0
+    for actype in actypes:
+        for i,sti in enumerate(st):
+            for j in [k for k,xx in enumerate(sti) if xx==actype]:
+                trog+=stt[i]*x[i][j]
+    return trog
 
 def trougput(actype,stt):
     trog=0
     for i,sti in enumerate(st):
         for j in [k for k,xx in enumerate(sti) if xx==actype]:
             trog+=stt[i]*x[i][j]
-    return trog[0]
+    return trog
 
-print(trougput("p",stt))
-
-
-data=[]
-ks=[i/2 for i in range(1,11)]
+'''
+acttype=[]
+for sti in st:
+    for stj in sti:
+        if stj not in acttype:
+            acttype.append(stj)
+acttype.remove("_")
+'''
+actype=["c2","c3","c4","c5","c6"]
+data_c1=[]
+data_pv=[]
+data_cm=[]
+ks=[.1,.3,.5,.7,.9,1,1.1,1.3,1.5,2,3,4,5,6,7]
 for i in ks:
-    x,st,state=init(i)
-    print(x)
+    x,st,state=init(i,g,1)
     stt=Markov_Steady_State_Prop(np.transpose(x))
-    data.append(trougput("p",stt))
-print(data)
+    data_pv.append(trougput("nh",stt))
+    data_c1.append(trougput("c1",stt))
+    data_cm.append(trp(actype,stt))
+
    
+'''plt.subplot() 
+plt.plot(ks,data_pv,color="C0") 
+plt.title("block troughput")
+plt.show()'''
+
 plt.subplot() 
-plt.plot(ks,data)   
+plt.plot(ks,data_c1,label="Single round",color="C2")  
+plt.plot(ks,data_cm,label="Multiple round",color="C3") 
+plt.plot(ks,data_pv,color="C0",label="total") 
+#plt.plot(ks,[data_cm[i]+data_c1[i] for i in range(len(data_c1))],label="sum",color="C4") 
+plt.axhline(y=1/.7,linestyle=":",c="purple",label="estimated performance",xmax=1)
+plt.title("throughput as function of k in non-homogeneous scenario")
+plt.ylabel("throughput")
+plt.xlabel("K")
+plt.legend()
 plt.show()
 
-print(ks)
+
+np.savetxt("nh.txt",np.array([np.array(data_c1).flatten(),np.array(data_cm).flatten(),np.array(data_pv).flatten()]))
+
+
+gs=[i/100 for i in range(1,11)]
+print(gs)
+ks=[.6,.8,1,2,4]
+plt.subplot() 
+for i,ki in enumerate(ks):
+    data_g=[]
+    for gi in gs:
+        x,st,state=init(ki,gi,1)
+        stt=Markov_Steady_State_Prop(np.transpose(x))
+        data_g.append(trougput("nh",stt))
+        #print(data_g)
+    plt.plot(gs,data_g,color="C"+str(i),label="K="+str(ki))
+plt.xlabel("g coefficient")
+plt.ylabel("trougput") 
+plt.axvline(x=.05,c="grey",linestyle=":")
+plt.title("throughput as function of timeout increase in non-homogeneous scenario")
+plt.legend()
+plt.show()
+
+
+sigmas=[.1,.3,.5,.7,.9,1,1.1,1.2,1.3,1.4,1.5,2,3,4,5]
+ks=[.6,.8,1,2,4,8]
+plt.subplot() 
+for i,ki in enumerate(ks):
+    data_g=[]
+    for sigma in sigmas:
+        x,st,state=init(ki,g,sigma)
+        stt=Markov_Steady_State_Prop(np.transpose(x))
+        data_g.append(trougput("nh",stt))
+        #print(data_g)
+    plt.plot(sigmas,data_g,color="C"+str(i),label="K="+str(ki))
+plt.xlabel("coefficient sigma of timeout")
+plt.ylabel("trougput") 
+plt.axvline(x=1,c="grey",linestyle=":")
+plt.title("throughput as function of timeouts in non-homogeneous scenario")
+plt.legend()
+plt.show()
+
 

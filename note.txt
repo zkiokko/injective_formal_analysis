@@ -1,0 +1,5 @@
+in the "throughput as function of timeouts in non-homogeneous scenario" 
+graph it is better to have lower timeouts becose we assume that if a black 
+it is proposed by a slow proposer it will note propose it in time so it is better
+to just not count them and rerun the prposing step hoppping that a a fast proposer is elected as
+proposer
